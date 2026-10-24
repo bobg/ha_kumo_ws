@@ -180,7 +180,7 @@ class CloudCodec:
 def _send_commands(cmd: Command, state: DeviceState) -> dict[str, Any]:
     match cmd:
         case SetPower(on=False) | SetMode(mode=HvacMode.OFF):
-            return {"power": 0}
+            return {"power": 0, "operationMode": "off"}
         case SetPower(on=True):
             # Re-send the last mode like the app; bare power=1 is a fallback.
             if state.mode is not None and state.mode is not HvacMode.OFF:
