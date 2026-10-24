@@ -2,7 +2,7 @@
 
 import logging
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Literal
 
 from ..domain.capabilities import Capabilities
@@ -89,6 +89,8 @@ class CloudCodec:
                         last.body["commands"].update(request.body["commands"])
                     else:
                         requests.append(request)
+                if isinstance(sub, SetMode):
+                    state = replace(state, mode=sub.mode, power=sub.mode is not HvacMode.OFF)
             return requests
         if isinstance(cmd, SetRoomTempOffset):
             relay = {"roomTempOffset": cmd.celsius}
@@ -190,6 +192,8 @@ def _send_commands(cmd: Command, state: DeviceState) -> dict[str, Any]:
             return {"power": 1, "operationMode": mode.value}
         case SetSetpoints(heat=heat, cool=cool):
             commands: dict[str, Any] = {}
+            if state.effective_mode is not None:
+                commands["operationMode"] = state.effective_mode.value
             if heat is not None:
                 commands["spHeat"] = heat
             if cool is not None:
